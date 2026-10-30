@@ -7,10 +7,10 @@ Cada fase termina **em produção**. Marque os itens conforme forem entregues.
 - [x] Clientes do Supabase (navegador, servidor, proxy de sessão)
 - [x] Página "em breve"
 - [x] `.env.example`, README e este roadmap
-- [ ] Repositório no GitHub (conta/org do DACOMP)
-- [ ] shadcn/ui inicializado (`npx shadcn@latest init`)
-- [ ] Projeto criado no Supabase (região São Paulo) e chaves no `.env.local`
-- [ ] Deploy na Vercel com as variáveis de ambiente
+- [x] Repositório no GitHub (`typedefAlejandro/RevelemoNos`; migrar para org do DACOMP depois)
+- [x] shadcn/ui inicializado
+- [x] Projeto criado no Supabase e chaves no `.env.local`
+- [x] Deploy na Vercel com as variáveis de ambiente
 
 ## Fase 1 — Login e perfil
 - [x] Migração `fase1_auth_perfil` (tipos, `profiles`, `vinculos`, `moderador_escopos`) com RLS — testada
@@ -18,11 +18,14 @@ Cada fase termina **em produção**. Marque os itens conforme forem entregues.
 - [x] Telas: login (Google / GitHub), onboarding, perfil, sair
 - [x] Vincular/desvincular GitHub; `github_username` só vem da identidade verificada
 - [x] Repositórios públicos do GitHub no perfil
-- [ ] OAuth Google (Google Cloud) + GitHub (OAuth App) configurados no Supabase
-- [ ] "Manual linking" ligado no Supabase Auth
-- [ ] Migração aplicada (`npx supabase db push`)
-- [ ] Han promovido a superadmin (`supabase/sql/promover-superadmin.sql`)
+- [x] OAuth Google (Google Cloud) + GitHub (OAuth App) configurados no Supabase
+- [x] "Manual linking" ligado no Supabase Auth
+- [x] Migração aplicada (`npx supabase db push --linked`)
+- [x] Han promovido a superadmin (`supabase/sql/promover-superadmin.sql`)
 - [ ] Página pública do perfil (`/perfil/[id]`)
+- [x] Deploy na Vercel (https://revelemo-nos.vercel.app) com URLs atualizadas no Supabase, Google e GitHub
+- [x] Google Auth Platform como **Interno** (organização UNIFEI): só contas @unifei.edu.br, sem lista de teste
+- [ ] Adicionar outro membro do DACOMP como proprietário no Google Cloud e no Supabase
 
 ## Fase 2 — Projetos
 - [ ] CRUD de rascunho, membros, tags, capa, preview de Markdown
