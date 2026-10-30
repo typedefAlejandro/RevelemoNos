@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/tipos";
 
@@ -7,6 +8,9 @@ import type { Profile } from "@/lib/tipos";
  * Use dentro de um componente envolto em <Suspense> (lê cookies).
  */
 export async function getSessao() {
+  // A validação da sessão compara a expiração do token com o relógio
+  // (Date.now). Isso só pode rodar na hora da requisição, nunca no prerender.
+  await connection();
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const uid = data?.claims?.sub;

@@ -17,7 +17,14 @@ export function BotaoVincularGitHub() {
       options: { redirectTo: `${window.location.origin}/auth/callback?next=/perfil` },
     });
     if (error) {
-      setErro("Não foi possível iniciar o vínculo. Tente de novo.");
+      const msg = error.message.toLowerCase();
+      setErro(
+        msg.includes("manual linking")
+          ? "O vínculo manual está desligado no Supabase (Authentication → Sign In / Providers → Allow manual linking)."
+          : msg.includes("provider") || msg.includes("not enabled")
+            ? "O login pelo GitHub ainda não foi ativado no Supabase."
+            : `Não foi possível iniciar o vínculo: ${error.message}`,
+      );
       setCarregando(false);
     }
   }
