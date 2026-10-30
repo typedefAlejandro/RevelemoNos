@@ -25,9 +25,14 @@ async function Repos({ login }: { login: string }) {
             {r.nome}
           </a>
           {r.descricao && <p className="mt-1 line-clamp-2 text-sm text-neutral-600 dark:text-neutral-400">{r.descricao}</p>}
-          <p className="mt-2 text-xs text-neutral-500">
-            {[r.linguagem, r.estrelas ? `★ ${r.estrelas}` : null].filter(Boolean).join(" · ")}
-          </p>
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <p className="text-xs text-neutral-500">
+              {[r.linguagem, r.estrelas ? `★ ${r.estrelas}` : null].filter(Boolean).join(" · ")}
+            </p>
+            <Link href={`/projetos/novo?repo=${encodeURIComponent(`${login}/${r.nome}`)}`} className="text-xs font-medium underline">
+              Importar como projeto
+            </Link>
+          </div>
         </li>
       ))}
     </ul>

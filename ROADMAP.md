@@ -28,9 +28,14 @@ Cada fase termina **em produção**. Marque os itens conforme forem entregues.
 - [ ] Adicionar outro membro do DACOMP como proprietário no Google Cloud e no Supabase
 
 ## Fase 2 — Projetos
-- [ ] CRUD de rascunho, membros, tags, capa, preview de Markdown
-- [ ] Importar repositório do GitHub como rascunho (só repos do próprio usuário ou em que é contribuidor)
-- [ ] "Enviar para aprovação"
+- [x] Migração `fase2_projetos` (projetos, membros, tags, capas no Storage) com RLS — testada
+- [x] Meus projetos, novo, editar (rascunho), excluir
+- [x] Membros por @GitHub ou e-mail; orientador precisa ser professor; sempre sobra um autor
+- [x] Tags (contexto, tema, tecnologia) com 49 tags iniciais
+- [x] Capa (PNG/JPG/WEBP até 2 MB) e descrição em Markdown com pré-visualização
+- [x] Importar repositório do GitHub (só dono ou contribuidor; conferido no servidor)
+- [x] Enviar para aprovação / voltar para rascunho; editar projeto publicado volta para a fila
+- [ ] Migração aplicada (`npx supabase db push --linked`) e testada em produção
 
 ## Fase 3 — Moderação  ← primeiro teste com usuários reais
 - [ ] Fila por escopo, aprovar/rejeitar com motivo, histórico

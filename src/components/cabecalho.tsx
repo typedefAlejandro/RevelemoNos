@@ -13,6 +13,7 @@ async function MenuUsuario() {
   }
   return (
     <div className="flex items-center gap-4 text-sm">
+      <Link href="/projetos" className="hover:underline">Meus projetos</Link>
       <Link href="/perfil" className="font-medium hover:underline">{profile.nome.split(" ")[0]}</Link>
       <form action="/auth/sair" method="post">
         <button className="text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100">Sair</button>
