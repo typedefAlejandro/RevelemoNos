@@ -51,10 +51,37 @@ Cada fase termina **em produção**. Marque os itens conforme forem entregues.
 - [x] Home = vitrine: busca, filtros por curso, tag e ano, paginação
 - [x] Página pública do projeto `/p/[slug]` com vídeo do YouTube embutido e Open Graph (prévia para membros)
 - [x] Perfil público `/perfil/[id]` com os projetos publicados
-- [ ] Migração aplicada (`npx supabase db push --linked`)
+- [x] Migração aplicada e em produção
 
-## Fase 5 — Feira
-- [ ] Modo apresentação, QR code por projeto, destaques
+## Fase 5 — Feira (EUREKA, escolas, outras universidades)
+- [ ] Modo apresentação `/feira`: tela cheia, passa os projetos sozinho, filtro por curso/tag
+- [ ] QR code por projeto (na página do projeto e no modo feira) e cartaz para imprimir
+- [ ] Destaques curados pela moderação (projetos em evidência na home)
 
-## v2
-- [ ] Demos executáveis no navegador, notificações, comentários
+## Fase 6 — Confiança e manutenção
+- [ ] Página de privacidade e termos de uso (LGPD: o que coletamos, para quê, como excluir)
+- [ ] Excluir a própria conta pelo app
+- [ ] Notificações por e-mail: projeto aprovado / ajustes pedidos / adicionado como membro
+- [ ] Segundo proprietário do DACOMP no Google Cloud, Supabase, Vercel e GitHub
+- [ ] Mover o repositório para a organização do DACOMP no GitHub
+- [ ] Tipos do banco gerados (`npx supabase gen types`) no lugar dos tipos escritos à mão
+- [ ] Testes automáticos das regras do banco (RLS) rodando a cada PR
+- [ ] `sitemap.xml` e `robots.txt` para os projetos aparecerem no Google
+
+## Expansão: outros campi e instituições
+Hoje o Revelemo-nos atende só os cursos de **Itajubá** (CCO, CDA, ECO, SIN e pós). Não pedimos campus no cadastro enquanto houver uma opção só: quando outro campus entrar, todos os cadastros atuais viram UNIFEI/Itajubá com um único comando.
+
+Fazer quando a expansão estiver decidida (ex.: o DACOMP/CA de Itabira ou Pouso Alegre topou), numa migração planejada:
+- [ ] Tabela de **instituições** (nome, domínio de e-mail aceito); o bloqueio de `@unifei.edu.br` passa a consultar essa lista
+- [ ] Tabela de **campi** (Itajubá, Itabira, Pouso Alegre…) com ativo/inativo para liberar um de cada vez
+- [ ] **Cursos** viram tabela ligada ao campus (hoje são uma lista fixa `CCO/CDA/ECO/SIN` no banco e no código)
+- [ ] Vínculos e escopos de moderação apontam para o curso; moderador modera "curso X do campus Y"
+- [ ] Cadastros e projetos existentes migrados para UNIFEI/Itajubá
+- [ ] Campus no cadastro e filtro de campus na vitrine (só aparecem com mais de um campus ativo)
+- [ ] Outras instituições: Google Auth Platform precisa virar "Externo" (hoje é "Interno" da UNIFEI); o bloqueio por domínio no banco continua garantindo quem entra
+
+## v2 — ideias
+- [ ] Demos executáveis no navegador (StackBlitz/WebContainers, Pyodide, v86)
+- [ ] Comentários e "curtir" nos projetos
+- [ ] Coleções (ex.: "Projetos da EUREKA 2026", "TFGs de 2025")
+- [ ] Página por curso e por professor orientador
