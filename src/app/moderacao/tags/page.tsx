@@ -3,16 +3,28 @@ import { exigirModerador } from "@/lib/auth";
 import { listarTags } from "../../projetos/dados";
 import { AbasModeracao } from "../abas";
 import { GerenciarTags } from "./gerenciar";
+import { SugestoesPendentes, type Sugestao } from "./sugestoes";
 
 async function Conteudo() {
   const { supabase } = await exigirModerador();
-  const [tags, { data: usosBrutos }] = await Promise.all([
+  const [tags, { data: usosBrutos }, { data: sugestoes }] = await Promise.all([
     listarTags(supabase),
     supabase.from("projeto_tags").select("tag_id"),
+    supabase
+      .from("sugestoes_tag")
+      .select("id, nome, categoria, created_at, projetos(titulo)")
+      .eq("status", "PENDENTE")
+      .order("created_at")
+      .returns<Sugestao[]>(),
   ]);
   const usos: Record<string, number> = {};
   for (const u of usosBrutos ?? []) usos[u.tag_id] = (usos[u.tag_id] ?? 0) + 1;
-  return <GerenciarTags tags={tags} usos={usos} />;
+  return (
+    <>
+      <SugestoesPendentes sugestoes={sugestoes ?? []} tags={tags} />
+      <GerenciarTags tags={tags} usos={usos} />
+    </>
+  );
 }
 
 export default function TagsPage() {

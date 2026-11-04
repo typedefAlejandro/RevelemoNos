@@ -3,9 +3,9 @@
 import { useState, useTransition } from "react";
 import type { StatusProjeto } from "@/lib/projetos";
 import { alertaErro, botaoPrimario, botaoSecundario, campo } from "../../projetos/estilos";
-import { moderar } from "../actions";
+import { moderar, moderarAlteracao } from "../actions";
 
-export function Decisao({ projetoId, status, bloqueado }: { projetoId: string; status: StatusProjeto; bloqueado: string | null }) {
+export function Decisao({ projetoId, status, revisao = false, bloqueado }: { projetoId: string; status: StatusProjeto; revisao?: boolean; bloqueado: string | null }) {
   const [modo, setModo] = useState<"nada" | "ajustes" | "arquivar">("nada");
   const [motivo, setMotivo] = useState("");
   const [erro, setErro] = useState<string | null>(null);
@@ -19,7 +19,40 @@ export function Decisao({ projetoId, status, bloqueado }: { projetoId: string; s
     });
   }
 
+  function decidirAlteracao(aceitar: boolean) {
+    setErro(null);
+    startTransition(async () => {
+      const r = await moderarAlteracao(projetoId, aceitar, motivo);
+      if (r?.erro) setErro(r.erro);
+    });
+  }
+
   if (bloqueado) return <p className="text-sm text-neutral-600 dark:text-neutral-400">{bloqueado}</p>;
+
+  if (status === "APROVADO" && revisao) {
+    return (
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">Os autores propuseram uma nova versão. A atual continua no ar até você decidir.</p>
+        {modo === "ajustes" ? (
+          <>
+            <textarea className={campo} rows={4} maxLength={2000} value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="O que precisa mudar na versão nova? A versão publicada continua no ar." />
+            <div className="flex flex-wrap gap-3">
+              <button type="button" disabled={ocupado} onClick={() => decidirAlteracao(false)} className={botaoPrimario}>Recusar a versão nova</button>
+              <button type="button" onClick={() => setModo("nada")} className="text-sm underline">Cancelar</button>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-wrap gap-3">
+            <button type="button" disabled={ocupado} onClick={() => decidirAlteracao(true)} className="rounded-lg bg-green-700 px-4 py-2 font-medium text-white hover:bg-green-800 disabled:opacity-60">
+              {ocupado ? "Salvando…" : "Aceitar e publicar a versão nova"}
+            </button>
+            <button type="button" disabled={ocupado} onClick={() => setModo("ajustes")} className={botaoSecundario}>Recusar (pedir ajustes)</button>
+          </div>
+        )}
+        {erro && <p role="alert" className={alertaErro}>{erro}</p>}
+      </div>
+    );
+  }
 
   if (status === "APROVADO") {
     return (

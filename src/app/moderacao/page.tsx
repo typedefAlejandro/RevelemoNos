@@ -7,9 +7,11 @@ import { alertaOk } from "../projetos/estilos";
 import { AbasModeracao } from "./abas";
 
 const FEITO: Record<string, string> = {
-  aprovado: "Projeto aprovado e publicado.",
-  rejeitado: "Ajustes pedidos. Os autores vão ver o seu motivo.",
+  aprovado: "Decisão registrada: projeto publicado.",
+  rejeitado: "Ajustes pedidos (o projeto saiu do ar, se estava publicado). Os autores vão ver o seu motivo.",
   arquivado: "Projeto despublicado.",
+  "alteracao-aceita": "Versão nova publicada.",
+  "alteracao-recusada": "Versão nova recusada. A publicada continua no ar e os autores vão ver o seu motivo.",
 };
 
 type Item = Pick<Projeto, "id" | "titulo" | "resumo" | "escopos" | "updated_at" | "capa_path" | "github_repo">;
@@ -28,6 +30,22 @@ async function Fila({ searchParams }: { searchParams: Promise<{ escopo?: string;
   if (filtro) query = query.contains("escopos", [filtro]);
   const { data } = await query.returns<Item[]>();
   const itens = data ?? [];
+
+  // RLS: só as alterações dos cursos que este moderador modera.
+  let qRevisao = supabase
+    .from("projeto_alteracoes")
+    .select("enviado_em, projetos!inner(id, titulo, status, escopos)")
+    .is("motivo_recusa", null)
+    .eq("projetos.status", "APROVADO")
+    .order("enviado_em", { ascending: true });
+  if (filtro) qRevisao = qRevisao.contains("projetos.escopos", [filtro]);
+  const { data: revisoesBrutas } = await qRevisao.returns<{ enviado_em: string; projetos: { id: string; titulo: string } }[]>();
+  const revisoes = (revisoesBrutas ?? []).map((r) => ({ id: r.projetos.id, titulo: r.projetos.titulo, alterado_em: r.enviado_em }));
+
+  const { count: sugestoesPendentes } = await supabase
+    .from("sugestoes_tag")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "PENDENTE");
 
   const membros = await Promise.all(
     itens.map(async (p) => {
@@ -60,6 +78,30 @@ async function Fila({ searchParams }: { searchParams: Promise<{ escopo?: string;
         ))}
       </div>
 
+      {(sugestoesPendentes ?? 0) > 0 && (
+        <Link href="/moderacao/tags" className="rounded-lg border border-neutral-200 px-4 py-3 text-sm hover:border-neutral-400 dark:border-neutral-800">
+          🏷️ {sugestoesPendentes} sugestão(ões) de tag aguardando você →
+        </Link>
+      )}
+
+      {(revisoes ?? []).length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="font-semibold">Alterações em projetos publicados</h2>
+          <p className="text-sm text-neutral-500">Os autores propuseram uma versão nova. A atual continua no ar até você decidir.</p>
+          <ul className="flex flex-col gap-2">
+            {revisoes!.map((r) => (
+              <li key={r.id}>
+                <Link href={`/moderacao/${r.id}`} className="flex items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm hover:border-amber-500 dark:border-amber-800 dark:bg-amber-950">
+                  <span className="font-medium">{r.titulo}</span>
+                  <span className="text-xs text-neutral-500">enviada em {new Date(r.alterado_em).toLocaleString("pt-BR")}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <h2 className="font-semibold">Aguardando aprovação</h2>
       {itens.length === 0 ? (
         <div className="rounded-lg border border-dashed border-neutral-300 p-10 text-center dark:border-neutral-700">
           <p className="font-medium">Nenhum projeto aguardando aprovação.</p>

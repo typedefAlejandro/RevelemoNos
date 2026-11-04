@@ -53,6 +53,15 @@ Cada fase termina **em produção**. Marque os itens conforme forem entregues.
 - [x] Perfil público `/perfil/[id]` com os projetos publicados
 - [x] Migração aplicada e em produção
 
+## Melhorias pós-lançamento (nov/2026)
+- [x] Grupos e equipes como categoria de tag: Asimov Jr., Beyond, BlackBee, Dev-U, Ex-Machina, Hawksec, Uairrior
+- [x] Página de cada grupo `/g/[slug]` com logo, descrição e site (moderação edita em Moderação → Tags) e faixa de grupos na home
+- [x] Usuários sugerem tags; moderação aprova (pode corrigir nome/categoria), junta com uma existente ou recusa
+- [x] Capa aceita imagens até 25 MB: o navegador reduz para caber em 2 MB, com aviso
+- [x] Editar projeto publicado: "manter a versão atual no ar" (nova versão vai para revisão) ou "tirar do ar até aprovar"
+- [ ] Migrações aplicadas (`npx supabase db push --linked`)
+- [ ] Logos e descrições dos grupos cadastrados
+
 ## Fase 5 — Feira (EUREKA, escolas, outras universidades)
 - [ ] Modo apresentação `/feira`: tela cheia, passa os projetos sozinho, filtro por curso/tag
 - [ ] QR code por projeto (na página do projeto e no modo feira) e cartaz para imprimir

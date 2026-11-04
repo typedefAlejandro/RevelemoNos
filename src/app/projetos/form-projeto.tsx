@@ -2,12 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { Markdown } from "@/components/markdown";
-import { CATEGORIA_ROTULO, ESCOPO_ROTULO, type CategoriaTag, type Tag } from "@/lib/projetos";
+import { CATEGORIA_ROTULO, ESCOPO_ROTULO, ORDEM_CATEGORIAS, type CategoriaTag, type Tag } from "@/lib/projetos";
 import { ESCOPOS, type DadosProjeto, type Escopo } from "@/lib/validations/projeto";
-import { atualizarProjeto, criarProjeto } from "./actions";
+import { atualizarProjeto, criarProjeto, sugerirTag } from "./actions";
 import { alertaErro, alertaOk, botaoPrimario, campo } from "./estilos";
-
-const ORDEM_CATEGORIAS: CategoriaTag[] = ["CONTEXTO", "TEMA", "TECNOLOGIA"];
 
 type Props = {
   modo: "criar" | "editar";
@@ -16,15 +14,44 @@ type Props = {
   inicial: DadosProjeto;
   tags: Tag[];
   aprovado?: boolean;
+  sugestoes?: { id: string; nome: string; status: "PENDENTE" | "APROVADA" | "RECUSADA"; motivo: string | null }[];
 };
 
-export function FormProjeto({ modo, projetoId, githubRepo, inicial, tags, aprovado }: Props) {
+export function FormProjeto({ modo, projetoId, githubRepo, inicial, tags, aprovado, sugestoes = [] }: Props) {
   const [d, setD] = useState<DadosProjeto>(inicial);
   const [anoTexto, setAnoTexto] = useState(inicial.ano?.toString() ?? "");
   const [aba, setAba] = useState<"escrever" | "ver">("escrever");
   const [erro, setErro] = useState<string | null>(null);
-  const [ok, setOk] = useState(false);
+  const [ok, setOk] = useState<false | "salvo" | "proposta">(false);
   const [salvando, startTransition] = useTransition();
+  const [manter, setManter] = useState(true);
+  const [sugerindo, setSugerindo] = useState(false);
+  const [novaTag, setNovaTag] = useState("");
+  const [novaCategoria, setNovaCategoria] = useState<CategoriaTag>("TEMA");
+  const [msgSugestao, setMsgSugestao] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
+  const [enviandoSugestao, startSugestao] = useTransition();
+
+  function enviarSugestao() {
+    setMsgSugestao(null);
+    startSugestao(async () => {
+      const r = await sugerirTag(novaTag, novaCategoria, projetoId);
+      if ("erro" in r && r.erro) return setMsgSugestao({ tipo: "erro", texto: r.erro });
+      if ("status" in r && r.status === "existe" && r.tag_id) {
+        if (!d.tags.includes(r.tag_id) && d.tags.length < 10) set("tags", [...d.tags, r.tag_id]);
+        setMsgSugestao({ tipo: "ok", texto: "Essa tag já existe e foi marcada para você." });
+      } else if ("status" in r && r.status === "ja_sugerida") {
+        setMsgSugestao({ tipo: "ok", texto: "Você já sugeriu essa tag. Ela está aguardando a moderação." });
+      } else {
+        setMsgSugestao({
+          tipo: "ok",
+          texto: projetoId
+            ? "Sugestão enviada! Quando a moderação aprovar, a tag entra sozinha neste projeto."
+            : "Sugestão enviada! Quando for aprovada, ela aparece na lista para você marcar.",
+        });
+      }
+      setNovaTag("");
+    });
+  }
 
   function set<K extends keyof DadosProjeto>(k: K, v: DadosProjeto[K]) {
     setD((atual) => ({ ...atual, [k]: v }));
@@ -44,9 +71,9 @@ export function FormProjeto({ modo, projetoId, githubRepo, inicial, tags, aprova
       const r =
         modo === "criar"
           ? await criarProjeto(dados, githubRepo)
-          : await atualizarProjeto(projetoId!, dados);
+          : await atualizarProjeto(projetoId!, dados, aprovado ? manter : false);
       if (r?.erro) setErro(r.erro);
-      else if (r?.ok) setOk(true);
+      else if (r?.ok) setOk("proposta" in r && r.proposta ? "proposta" : "salvo");
     });
   }
 
@@ -163,16 +190,54 @@ export function FormProjeto({ modo, projetoId, githubRepo, inicial, tags, aprova
             </div>
           </div>
         ))}
-        <p className="text-xs text-neutral-500">Falta alguma tag? Peça a um moderador do DACOMP.</p>
+        {sugestoes.length > 0 && (
+          <ul className="flex flex-col gap-1 text-xs">
+            {sugestoes.map((s) => (
+              <li key={s.id} className="text-neutral-600 dark:text-neutral-400">
+                Sugestão <strong>{s.nome}</strong>:{" "}
+                {s.status === "PENDENTE" ? "aguardando moderação" : s.status === "APROVADA" ? "aprovada" : `recusada${s.motivo ? ` — ${s.motivo}` : ""}`}
+              </li>
+            ))}
+          </ul>
+        )}
+        {sugerindo ? (
+          <div className="flex flex-col gap-2 rounded-lg border border-dashed border-neutral-300 p-3 dark:border-neutral-700">
+            <span className="text-xs font-medium">Sugerir uma tag nova (passa pela moderação)</span>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input className={campo} value={novaTag} maxLength={40} onChange={(e) => setNovaTag(e.target.value)} placeholder="Ex.: Visão Computacional" />
+              <select className={`${campo} sm:w-44`} value={novaCategoria} onChange={(e) => setNovaCategoria(e.target.value as CategoriaTag)}>
+                {ORDEM_CATEGORIAS.map((c) => <option key={c} value={c}>{CATEGORIA_ROTULO[c]}</option>)}
+              </select>
+              <button type="button" disabled={enviandoSugestao || novaTag.trim().length < 2} onClick={enviarSugestao} className="shrink-0 rounded-lg border border-neutral-300 px-3 py-2 text-sm font-medium disabled:opacity-60 dark:border-neutral-700">
+                {enviandoSugestao ? "Enviando…" : "Sugerir"}
+              </button>
+            </div>
+            {msgSugestao && <p className={`text-xs ${msgSugestao.tipo === "erro" ? "text-red-700 dark:text-red-400" : "text-green-700 dark:text-green-400"}`}>{msgSugestao.texto}</p>}
+          </div>
+        ) : (
+          <button type="button" onClick={() => setSugerindo(true)} className="self-start text-xs underline">
+            Não achou a tag? Sugira uma nova
+          </button>
+        )}
       </fieldset>
 
       {aprovado && (
-        <p className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-200">
-          Este projeto está publicado. Ao salvar mudanças, ele volta para aprovação.
-        </p>
+        <fieldset className="flex flex-col gap-2 rounded-lg bg-amber-50 p-4 text-sm text-amber-950 dark:bg-amber-950 dark:text-amber-100">
+          <legend className="sr-only">Como publicar as alterações</legend>
+          <p className="font-medium">Este projeto está publicado. Ao salvar:</p>
+          <label className="flex items-start gap-2">
+            <input type="radio" name="publicacao" className="mt-1" checked={manter} onChange={() => setManter(true)} />
+            <span><strong>Manter a versão atual no ar</strong> — o público continua vendo a versão publicada; a nova só aparece depois que a moderação aprovar. Bom para melhorias e ajustes.</span>
+          </label>
+          <label className="flex items-start gap-2">
+            <input type="radio" name="publicacao" className="mt-1" checked={!manter} onChange={() => setManter(false)} />
+            <span><strong>Tirar do ar até aprovar</strong> — o projeto sai da vitrine agora e só volta com a nova versão aprovada. Use quando estiver corrigindo algo que não pode ficar público.</span>
+          </label>
+        </fieldset>
       )}
       {erro && <p role="alert" className={alertaErro}>{erro}</p>}
-      {ok && <p className={alertaOk}>Alterações salvas.</p>}
+      {ok === "salvo" && <p className={alertaOk}>Alterações salvas.</p>}
+      {ok === "proposta" && <p className={alertaOk}>Alteração enviada para a moderação. A versão atual continua no ar até ser aprovada.</p>}
 
       <button type="submit" disabled={salvando} className={`self-start ${botaoPrimario}`}>
         {salvando ? "Salvando…" : modo === "criar" ? "Criar rascunho" : "Salvar alterações"}

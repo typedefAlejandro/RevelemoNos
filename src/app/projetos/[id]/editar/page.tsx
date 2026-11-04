@@ -9,6 +9,7 @@ import { alertaOk } from "../../estilos";
 import { FormProjeto } from "../../form-projeto";
 import { Acoes } from "./acoes";
 import { Capa } from "./capa";
+import { DescartarAlteracao } from "./descartar";
 import { Membros } from "./membros";
 
 async function Conteudo({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ criado?: string }> }) {
@@ -17,9 +18,16 @@ async function Conteudo({ params, searchParams }: { params: Promise<{ id: string
 
   const [carregado, tags] = await Promise.all([carregarProjeto(supabase, id), listarTags(supabase)]);
   if (!carregado) notFound();
-  const { projeto, membros, tagIds } = carregado;
+  const { projeto, membros, tagIds, alteracao } = carregado;
+  // Se há uma versão proposta, é ela que o autor continua editando.
+  const conteudo = alteracao?.dados ?? projeto;
 
   const meuPapel = membros.find((m) => m.user_id === uid)?.papel;
+  const { data: sugestoes } = await supabase
+    .from("sugestoes_tag")
+    .select("id, nome, status, motivo")
+    .eq("projeto_id", id)
+    .order("created_at", { ascending: false });
   const podeEditar = (meuPapel === "AUTOR" || meuPapel === "ORIENTADOR") && projeto.status !== "ARQUIVADO";
 
   return (
@@ -44,6 +52,23 @@ async function Conteudo({ params, searchParams }: { params: Promise<{ id: string
             <p className="mt-1 whitespace-pre-line">{projeto.motivo_rejeicao}</p>
           </div>
         )}
+        {alteracao && (
+          <div className={`flex flex-col gap-2 rounded-lg px-4 py-3 text-sm ${alteracao.motivo_recusa ? "bg-red-50 text-red-900 dark:bg-red-950 dark:text-red-200" : "bg-amber-50 text-amber-900 dark:bg-amber-950 dark:text-amber-200"}`}>
+            {alteracao.motivo_recusa ? (
+              <>
+                <p className="font-medium">A moderação recusou a sua alteração. A versão publicada continua no ar.</p>
+                <p className="whitespace-pre-line">{alteracao.motivo_recusa}</p>
+                <p>Corrija abaixo e salve de novo para reenviar.</p>
+              </>
+            ) : (
+              <p>
+                Você enviou uma nova versão em {new Date(alteracao.enviado_em).toLocaleString("pt-BR")}. Ela aguarda a moderação;
+                enquanto isso, o público vê a versão publicada. Os campos abaixo mostram a versão nova.
+              </p>
+            )}
+            {meuPapel && meuPapel !== "COLABORADOR" && <DescartarAlteracao projetoId={projeto.id} />}
+          </div>
+        )}
         {projeto.status === "PENDENTE" && (
           <p className="text-sm text-neutral-600 dark:text-neutral-400">Um moderador vai revisar o projeto. Você ainda pode editar enquanto isso.</p>
         )}
@@ -53,7 +78,7 @@ async function Conteudo({ params, searchParams }: { params: Promise<{ id: string
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Capa</h2>
-        <Capa projetoId={projeto.id} uid={uid} path={projeto.capa_path} podeEditar={podeEditar} />
+        <Capa projetoId={projeto.id} uid={uid} path={conteudo.capa_path} podeEditar={podeEditar} aprovado={projeto.status === "APROVADO"} />
       </section>
 
       <section className="flex flex-col gap-3">
@@ -64,16 +89,17 @@ async function Conteudo({ params, searchParams }: { params: Promise<{ id: string
             projetoId={projeto.id}
             aprovado={projeto.status === "APROVADO"}
             tags={tags}
+            sugestoes={sugestoes ?? []}
             inicial={{
-              titulo: projeto.titulo,
-              resumo: projeto.resumo,
-              descricao_md: projeto.descricao_md ?? "",
-              repo_url: projeto.repo_url ?? "",
-              demo_url: projeto.demo_url ?? "",
-              video_url: projeto.video_url ?? "",
-              ano: projeto.ano,
-              escopos: projeto.escopos,
-              tags: tagIds,
+              titulo: conteudo.titulo,
+              resumo: conteudo.resumo,
+              descricao_md: conteudo.descricao_md ?? "",
+              repo_url: conteudo.repo_url ?? "",
+              demo_url: conteudo.demo_url ?? "",
+              video_url: conteudo.video_url ?? "",
+              ano: conteudo.ano,
+              escopos: conteudo.escopos,
+              tags: alteracao?.tags ?? tagIds,
             }}
           />
         ) : (

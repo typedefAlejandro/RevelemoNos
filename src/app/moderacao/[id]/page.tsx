@@ -8,6 +8,7 @@ import { CATEGORIA_ROTULO, ESCOPO_ROTULO, PAPEL_ROTULO, STATUS_INFO, urlCapa, ty
 import { carregarProjeto, listarTags } from "../../projetos/dados";
 import { AbasModeracao } from "../abas";
 import { Decisao } from "./decisao";
+import { Diferencas } from "./diferencas";
 
 type Registro = { id: string; decisao: StatusProjeto; motivo: string | null; created_at: string };
 
@@ -16,7 +17,9 @@ async function Conteudo({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [carregado, tags] = await Promise.all([carregarProjeto(supabase, id), listarTags(supabase)]);
   if (!carregado) notFound();
-  const { projeto: p, membros, tagIds } = carregado;
+  const { projeto: p, membros, tagIds, alteracao } = carregado;
+  const nomeTag = (id: string) => tags.find((t: Tag) => t.id === id)?.nome ?? "?";
+  const alteracaoPendente = p.status === "APROVADO" && alteracao && !alteracao.motivo_recusa ? alteracao : null;
 
   const { data: historico } = await supabase
     .from("moderacoes")
@@ -48,8 +51,27 @@ async function Conteudo({ params }: { params: Promise<{ id: string }> }) {
 
       <section className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
         <h3 className="mb-3 font-semibold">Decisão</h3>
-        <Decisao projetoId={p.id} status={p.status} bloqueado={bloqueado} />
+        <Decisao projetoId={p.id} status={p.status} revisao={!!alteracaoPendente} bloqueado={bloqueado} />
       </section>
+
+      {alteracaoPendente && (
+        <section className="flex flex-col gap-3 rounded-lg border border-amber-300 p-4 dark:border-amber-800">
+          <h3 className="font-semibold">Nova versão proposta</h3>
+          <p className="text-sm text-neutral-500">
+            Enviada em {new Date(alteracaoPendente.enviado_em).toLocaleString("pt-BR")}. Abaixo da comparação, a página mostra a versão publicada.
+          </p>
+          <Diferencas
+            publicada={{ ...p, tags: tagIds.map(nomeTag) }}
+            proposta={{ ...alteracaoPendente.dados, tags: alteracaoPendente.tags.map(nomeTag) }}
+          />
+          {alteracaoPendente.dados.descricao_md && alteracaoPendente.dados.descricao_md !== p.descricao_md && (
+            <details className="text-sm">
+              <summary className="cursor-pointer font-medium">Ver a descrição proposta formatada</summary>
+              <div className="mt-3"><Markdown texto={alteracaoPendente.dados.descricao_md} /></div>
+            </details>
+          )}
+        </section>
+      )}
 
       {capa && (
         // eslint-disable-next-line @next/next/no-img-element

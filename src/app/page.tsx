@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { CardProjeto } from "@/components/card-projeto";
-import { CATEGORIA_ROTULO, ESCOPO_ROTULO, type CategoriaTag } from "@/lib/projetos";
+import { LogoGrupo } from "@/components/logo-grupo";
+import { CATEGORIA_ROTULO, ESCOPO_ROTULO, ORDEM_CATEGORIAS, type Tag } from "@/lib/projetos";
 import { createClient } from "@/lib/supabase/server";
 import { ESCOPOS } from "@/lib/validations/projeto";
 import { lerFiltros, POR_PAGINA, urlVitrine, type FiltrosDisponiveis, type ItemVitrine } from "@/lib/vitrine";
@@ -17,7 +18,7 @@ async function Vitrine({ searchParams }: { searchParams: Promise<Record<string, 
   const f = lerFiltros(await searchParams);
   const supabase = await createClient();
 
-  const [{ data: itensBrutos }, { data: filtrosBrutos }] = await Promise.all([
+  const [{ data: itensBrutos }, { data: filtrosBrutos }, { data: grupos }] = await Promise.all([
     supabase.rpc("vitrine", {
       p_busca: f.q ?? null,
       p_escopo: f.curso ?? null,
@@ -27,6 +28,7 @@ async function Vitrine({ searchParams }: { searchParams: Promise<Record<string, 
       p_offset: (f.pagina - 1) * POR_PAGINA,
     }),
     supabase.rpc("filtros_vitrine"),
+    supabase.from("tags").select("id, nome, slug, categoria, logo_path").eq("categoria", "GRUPO").order("nome").returns<Tag[]>(),
   ]);
 
   const itens = (itensBrutos ?? []) as ItemVitrine[];
@@ -34,10 +36,25 @@ async function Vitrine({ searchParams }: { searchParams: Promise<Record<string, 
   const total = itens[0]?.total ?? 0;
   const paginas = Math.max(1, Math.ceil(total / POR_PAGINA));
   const temFiltro = !!(f.q || f.curso || f.tag || f.ano);
-  const categorias: CategoriaTag[] = ["CONTEXTO", "TEMA", "TECNOLOGIA"];
+  const categorias = ORDEM_CATEGORIAS;
 
   return (
     <div className="flex flex-col gap-8">
+      {(grupos ?? []).length > 0 && !temFiltro && (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Grupos e equipes</h2>
+          <ul className="flex gap-4 overflow-x-auto pb-2">
+            {grupos!.map((g) => (
+              <li key={g.id} className="shrink-0">
+                <Link href={`/g/${g.slug}`} className="flex w-24 flex-col items-center gap-2 text-center text-xs font-medium hover:underline">
+                  <LogoGrupo nome={g.nome} path={g.logo_path} tamanho="h-16 w-16" />
+                  {g.nome}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <div className="flex flex-col gap-4">
         <form action="/" className="flex gap-2">
           {f.curso && <input type="hidden" name="curso" value={f.curso} />}

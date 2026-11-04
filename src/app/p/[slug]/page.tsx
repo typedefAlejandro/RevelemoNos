@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BadgeStatus } from "@/components/badge-status";
+import { LogoGrupo } from "@/components/logo-grupo";
 import { Markdown } from "@/components/markdown";
 import { CATEGORIA_ROTULO, ESCOPO_ROTULO, PAPEL_ROTULO, urlCapa } from "@/lib/projetos";
 import { projetoPorSlug } from "./dados";
@@ -113,11 +114,27 @@ async function Conteudo({ params }: { params: Promise<{ slug: string }> }) {
             </ul>
           </section>
 
-          {tags.length > 0 && (
+          {tags.some((t) => t.categoria === "GRUPO") && (
+            <section className="flex flex-col gap-2">
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Grupo</h2>
+              <ul className="flex flex-col gap-2">
+                {tags.filter((t) => t.categoria === "GRUPO").map((t) => (
+                  <li key={t.slug}>
+                    <Link href={`/g/${t.slug}`} className="flex items-center gap-3 font-medium hover:underline">
+                      <LogoGrupo nome={t.nome} path={t.logo_path} tamanho="h-9 w-9" />
+                      {t.nome}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {tags.some((t) => t.categoria !== "GRUPO") && (
             <section className="flex flex-col gap-2">
               <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Tags</h2>
               <div className="flex flex-wrap gap-1.5">
-                {tags.map((t) => (
+                {tags.filter((t) => t.categoria !== "GRUPO").map((t) => (
                   <Link key={t.slug} href={`/?tag=${t.slug}`} title={CATEGORIA_ROTULO[t.categoria]} className="rounded-full border border-neutral-300 px-2.5 py-0.5 text-xs hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-900">
                     {t.nome}
                   </Link>

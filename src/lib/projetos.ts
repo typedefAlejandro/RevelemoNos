@@ -3,7 +3,7 @@ import type { Escopo } from "@/lib/validations/projeto";
 
 export type StatusProjeto = "RASCUNHO" | "PENDENTE" | "APROVADO" | "REJEITADO" | "ARQUIVADO";
 export type PapelMembro = "AUTOR" | "ORIENTADOR" | "COLABORADOR";
-export type CategoriaTag = "TEMA" | "CONTEXTO" | "TECNOLOGIA";
+export type CategoriaTag = "GRUPO" | "TEMA" | "CONTEXTO" | "TECNOLOGIA";
 
 export type Projeto = {
   id: string;
@@ -23,7 +23,36 @@ export type Projeto = {
   updated_at: string;
 };
 
-export type Tag = { id: string; nome: string; slug: string; categoria: CategoriaTag };
+/** Conteúdo editável de um projeto (o publicado ou o proposto). */
+export type Conteudo = {
+  titulo: string;
+  resumo: string;
+  descricao_md: string | null;
+  repo_url: string | null;
+  demo_url: string | null;
+  video_url: string | null;
+  capa_path: string | null;
+  escopos: Escopo[];
+  ano: number | null;
+};
+
+/** Nova versão proposta para um projeto publicado (aguardando moderação). */
+export type Alteracao = {
+  dados: Conteudo;
+  tags: string[];
+  enviado_em: string;
+  motivo_recusa: string | null;
+};
+
+export type Tag = {
+  id: string;
+  nome: string;
+  slug: string;
+  categoria: CategoriaTag;
+  logo_path?: string | null;
+  descricao?: string | null;
+  site_url?: string | null;
+};
 
 export type Membro = {
   user_id: string;
@@ -49,10 +78,13 @@ export const PAPEL_ROTULO: Record<PapelMembro, string> = {
 };
 
 export const CATEGORIA_ROTULO: Record<CategoriaTag, string> = {
+  GRUPO: "Grupo / equipe",
   CONTEXTO: "Contexto",
   TEMA: "Tema",
   TECNOLOGIA: "Tecnologia",
 };
+
+export const ORDEM_CATEGORIAS: CategoriaTag[] = ["GRUPO", "CONTEXTO", "TEMA", "TECNOLOGIA"];
 
 export const ESCOPO_ROTULO: Record<Escopo, string> = {
   CCO: "CCO",
@@ -66,6 +98,12 @@ export const ESCOPO_ROTULO: Record<Escopo, string> = {
 export function urlCapa(path: string | null) {
   if (!path) return null;
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/capas/${path}`;
+}
+
+/** URL pública do logo de um grupo (bucket "logos" é público). */
+export function urlLogo(path: string | null | undefined) {
+  if (!path) return null;
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/logos/${path}`;
 }
 
 /** Slug legível + sufixo aleatório (evita colisão sem consultar o banco). */

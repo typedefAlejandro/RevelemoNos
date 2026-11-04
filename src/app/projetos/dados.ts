@@ -1,9 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Membro, Projeto, Tag } from "@/lib/projetos";
+import type { Alteracao, Membro, Projeto, Tag } from "@/lib/projetos";
 import type { Escopo } from "@/lib/validations/projeto";
 
 export async function listarTags(supabase: SupabaseClient) {
-  const { data } = await supabase.from("tags").select("id, nome, slug, categoria").order("nome");
+  const { data } = await supabase.from("tags").select("id, nome, slug, categoria, logo_path, descricao, site_url").order("nome");
   return (data ?? []) as Tag[];
 }
 
@@ -42,14 +42,17 @@ export async function carregarProjeto(supabase: SupabaseClient, id: string) {
     .maybeSingle<Projeto>();
   if (!projeto) return null;
 
-  const [{ data: membros }, { data: tagsDoProjeto }] = await Promise.all([
+  const [{ data: membros }, { data: tagsDoProjeto }, { data: alteracao }] = await Promise.all([
     supabase.rpc("membros_do_projeto", { p_projeto: id }),
     supabase.from("projeto_tags").select("tag_id").eq("projeto_id", id),
+    // RLS: só membros e moderação do escopo leem a alteração proposta.
+    supabase.from("projeto_alteracoes").select("dados, tags, enviado_em, motivo_recusa").eq("projeto_id", id).maybeSingle<Alteracao>(),
   ]);
 
   return {
     projeto,
     membros: (membros ?? []) as Membro[],
     tagIds: (tagsDoProjeto ?? []).map((t: { tag_id: string }) => t.tag_id),
+    alteracao: alteracao ?? null,
   };
 }

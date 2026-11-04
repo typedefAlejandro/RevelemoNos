@@ -21,7 +21,7 @@ export const projetoPorSlug = cache(async (slug: string) => {
 
   const [{ data: membros }, { data: tags }] = await Promise.all([
     supabase.rpc("membros_do_projeto", { p_projeto: projeto.id }),
-    supabase.from("projeto_tags").select("tags(id, nome, slug, categoria)").eq("projeto_id", projeto.id),
+    supabase.from("projeto_tags").select("tags(id, nome, slug, categoria, logo_path)").eq("projeto_id", projeto.id),
   ]);
 
   return {
