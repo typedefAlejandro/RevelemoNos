@@ -38,8 +38,13 @@ Cada fase termina **em produção**. Marque os itens conforme forem entregues.
 - [ ] Migração aplicada (`npx supabase db push --linked`) e testada em produção
 
 ## Fase 3 — Moderação  ← primeiro teste com usuários reais
-- [ ] Fila por escopo, aprovar/rejeitar com motivo, histórico
-- [ ] Painel de superadmin (papéis, escopos, verificação)
+- [x] Migração `fase3_moderacao` (histórico `moderacoes`, `moderar_projeto`, RPCs de admin) — testada
+- [x] `/moderacao`: fila por curso, aprovar / pedir ajustes (motivo obrigatório), despublicar
+- [x] Moderador não decide sobre projeto em que é membro (só o superadmin)
+- [x] `/moderacao/historico` e `/moderacao/tags` (criar/excluir tags)
+- [x] `/admin`: nomear moderadores por curso, verificar vínculos
+- [ ] Migração aplicada (`npx supabase db push --linked`)
+- [ ] Nomear pelo menos um moderador por curso
 
 ## Fase 4 — Vitrine pública
 - [ ] Listagem com filtros e busca, página do projeto, Open Graph

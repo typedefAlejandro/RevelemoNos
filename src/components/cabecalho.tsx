@@ -13,6 +13,10 @@ async function MenuUsuario() {
   }
   return (
     <div className="flex items-center gap-4 text-sm">
+      {(profile.papel === "MODERADOR" || profile.papel === "SUPERADMIN") && (
+        <Link href="/moderacao" className="hover:underline">Moderação</Link>
+      )}
+      {profile.papel === "SUPERADMIN" && <Link href="/admin" className="hover:underline">Admin</Link>}
       <Link href="/projetos" className="hover:underline">Meus projetos</Link>
       <Link href="/perfil" className="font-medium hover:underline">{profile.nome.split(" ")[0]}</Link>
       <form action="/auth/sair" method="post">

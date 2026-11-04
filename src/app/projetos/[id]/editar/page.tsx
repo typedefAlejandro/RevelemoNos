@@ -35,9 +35,9 @@ async function Conteudo({ params, searchParams }: { params: Promise<{ id: string
           </p>
         )}
         {criado && <p className={alertaOk}>Rascunho criado! Adicione uma capa e os membros, e envie para aprovação quando estiver pronto.</p>}
-        {projeto.status === "REJEITADO" && projeto.motivo_rejeicao && (
+        {(projeto.status === "REJEITADO" || projeto.status === "ARQUIVADO") && projeto.motivo_rejeicao && (
           <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-900 dark:bg-red-950 dark:text-red-200">
-            <p className="font-medium">O que o moderador pediu:</p>
+            <p className="font-medium">{projeto.status === "ARQUIVADO" ? "Motivo da despublicação:" : "O que o moderador pediu:"}</p>
             <p className="mt-1 whitespace-pre-line">{projeto.motivo_rejeicao}</p>
           </div>
         )}

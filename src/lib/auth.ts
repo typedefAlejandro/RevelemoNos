@@ -34,3 +34,17 @@ export async function exigirPerfil(opts: { permitirSemOnboarding?: boolean } = {
   }
   return sessao as typeof sessao & { uid: string; profile: Profile };
 }
+
+/** Exige papel de moderador ou superadmin. */
+export async function exigirModerador() {
+  const sessao = await exigirPerfil();
+  if (sessao.profile.papel !== "MODERADOR" && sessao.profile.papel !== "SUPERADMIN") redirect("/");
+  return sessao;
+}
+
+/** Exige superadmin. */
+export async function exigirSuperadmin() {
+  const sessao = await exigirPerfil();
+  if (sessao.profile.papel !== "SUPERADMIN") redirect("/");
+  return sessao;
+}

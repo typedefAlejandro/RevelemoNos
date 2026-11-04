@@ -31,6 +31,7 @@ export type Membro = {
   foto_url: string | null;
   github_username: string | null;
   papel: PapelMembro;
+  verificado?: boolean;
 };
 
 export const STATUS_INFO: Record<StatusProjeto, { rotulo: string; classe: string }> = {
