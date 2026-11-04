@@ -29,6 +29,9 @@ async function Conteudo({ params, searchParams }: { params: Promise<{ id: string
           <h1 className="text-3xl font-bold tracking-tight">{projeto.titulo}</h1>
           <BadgeStatus status={projeto.status} />
         </div>
+        <Link href={`/p/${projeto.slug}`} className="self-start text-sm underline">
+          {projeto.status === "APROVADO" ? "Ver página pública ↗" : "Ver prévia da página ↗"}
+        </Link>
         {projeto.github_repo && (
           <p className="text-sm text-neutral-500">
             Importado de <a href={`https://github.com/${projeto.github_repo}`} target="_blank" rel="noopener noreferrer" className="font-mono underline">{projeto.github_repo}</a>

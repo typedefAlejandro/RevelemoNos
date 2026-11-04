@@ -7,7 +7,12 @@ import { cn } from "@/lib/utils";
 
 // Fontes empacotadas pelo pacote "geist": o build não depende de baixar do Google Fonts.
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000");
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Revelemo-nos — Projetos da Computação UNIFEI",
   description:
     "Vitrine dos projetos de alunos e professores de CCO, CDA, ECO, SIN e da pós-graduação da UNIFEI. Uma iniciativa do DACOMP.",

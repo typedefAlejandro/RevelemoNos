@@ -22,7 +22,7 @@ Cada fase termina **em produção**. Marque os itens conforme forem entregues.
 - [x] "Manual linking" ligado no Supabase Auth
 - [x] Migração aplicada (`npx supabase db push --linked`)
 - [x] Han promovido a superadmin (`supabase/sql/promover-superadmin.sql`)
-- [ ] Página pública do perfil (`/perfil/[id]`)
+- [x] Página pública do perfil (`/perfil/[id]`) — feita na Fase 4
 - [x] Deploy na Vercel (https://revelemo-nos.vercel.app) com URLs atualizadas no Supabase, Google e GitHub
 - [x] Google Auth Platform como **Interno** (organização UNIFEI): só contas @unifei.edu.br, sem lista de teste
 - [ ] Adicionar outro membro do DACOMP como proprietário no Google Cloud e no Supabase
@@ -47,7 +47,11 @@ Cada fase termina **em produção**. Marque os itens conforme forem entregues.
 - [ ] Nomear pelo menos um moderador por curso
 
 ## Fase 4 — Vitrine pública
-- [ ] Listagem com filtros e busca, página do projeto, Open Graph
+- [x] Migração `fase4_vitrine` (busca em português sem acento, `vitrine()`, `filtros_vitrine()`) — testada
+- [x] Home = vitrine: busca, filtros por curso, tag e ano, paginação
+- [x] Página pública do projeto `/p/[slug]` com vídeo do YouTube embutido e Open Graph (prévia para membros)
+- [x] Perfil público `/perfil/[id]` com os projetos publicados
+- [ ] Migração aplicada (`npx supabase db push --linked`)
 
 ## Fase 5 — Feira
 - [ ] Modo apresentação, QR code por projeto, destaques

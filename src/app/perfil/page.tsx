@@ -109,7 +109,12 @@ async function Conteudo() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold">Dados do perfil</h2>
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-lg font-semibold">Dados do perfil</h2>
+          <Link href={`/perfil/${profile.id}`} className="text-sm underline">
+            {profile.perfil_publico ? "Ver meu perfil público" : "Prévia do perfil público"}
+          </Link>
+        </div>
         <FormPerfil profile={profile} />
       </section>
     </div>
